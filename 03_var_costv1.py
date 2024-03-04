@@ -80,7 +80,7 @@ while item_name.lower() != "xxx":
     price_list.append(price)
 
 variable_frame = pandas.DataFrame(variable_dict)
-variable_frame = variable_frame.set_index('Item')
+variable_frame = variable_frame.set_index('item')
 
 # Calculate cost of each component
 variable_frame['Cost'] = variable_frame['Quantity'] \
