@@ -1,5 +1,6 @@
 # import libraries
 import pandas
+import math
 
 
 # Functions
@@ -125,20 +126,89 @@ def expense_print(heading, frame, subtotal):
     return ""
 
 
+def profit_goal(total_costs):
+    # initialise variables and error message
+    error = "Please enter a valid Profit goal\n"
+
+    valid = False
+    while not valid:
+
+        # ask for profit goal
+        response = input("What is your profit goal (eg $500 or 50%) ")
+
+        # check if first character is $
+        if response[0] == "$":
+            profit_type = "$"
+            # Get amount
+            amount = response[1:]
+
+        # Check if last character is %
+        elif response[-1] == "%":
+            profit_type = "%"
+            # Get amount
+            amount = response[:-1]
+
+        else:
+            # set response to amount for now
+            profit_type = "unknown"
+            amount = response
+
+        try:
+            # check amount is a number more than zero
+            amount = float(amount)
+            if amount <= 0:
+                print(error)
+                continue
+
+        except ValueError:
+            print(error)
+            continue
+
+        if profit_type == "unknown" and amount >= 100:
+            dollar_type = yes_no(f"Do you mean ${amount:.2f}, ie {amount:.2f} dollars. y / n ")
+
+            # set profit type
+            if dollar_type == "yes":
+                profit_type = "$"
+            else:
+                profit_type = "%"
+
+        elif profit_type == "unknown" and amount < 100:
+            percent_type = yes_no(f"Do you mean {amount}%?. y / n ")
+            if percent_type == "yes":
+                profit_type = "%"
+            else:
+                profit_type = "$"
+
+        # return profit to main routine
+        if profit_type == "$":
+            return amount
+        else:
+            goal = (amount / 100) * total_costs
+            return goal
+
+
+def round_up(amount, var_round_to):
+    return int(math.ceil(amount / var_round_to)) * var_round_to
+
+
 # main routine goes here
 # ask if user wants Instructions
 want_instructions = yes_no("Do you want to read the instructions? ").lower()
 if want_instructions == "yes":
-        print("instructions go here")
-        print("program continues...")
-        print()
+    print("instructions go here")
+    print("program continues...")
+    print()
 
 else:
     pass
 
-
 # Get product name
 product_name = not_blank("Product name: ", "The Product name cannot be blank")
+
+how_many = num_check("How many items will you be producing? ",
+                     "the number of items must be a whole "
+                     "number more than zero", int)
 
 print()
 print("Please enter Variable costs below . . .")
@@ -157,11 +227,23 @@ if have_fixed == "yes":
 else:
     fixed_sub = 0
 
-# find total costs
-
-# ask user for profit goal
+# work out total costs and profit target
+all_costs = variable_sub + fixed_sub
+profit_target = profit_goal(all_costs)
 
 # Calculate recommended price
+sales_needed = all_costs + profit_target
+
+# Ask user for rounding
+round_to = num_check("Round to nearest . . .? $",
+                     "Can't be 0 ", int)
+
+
+# Calculate recommend price
+selling_price = sales_needed / how_many
+print(f"selling price (unrounded): {selling_price:.2f}")
+
+recommended_price = round_up(selling_price, round_to)
 
 # write data to file
 
@@ -174,4 +256,13 @@ expense_print("Variable", variable_frame, variable_sub)
 
 if have_fixed == "yes":
     expense_print("Fixed", fixed_frame[['Cost']], fixed_sub)
+
+print()
+print(f"* * * Total Costs: {all_costs:.2f}")
+print()
+
+print()
+print("* * * * Profit and Sales Targets * * * *")
+print(f"Profit Target: {profit_target:.2f}")
+print(f"Recommended Price: ${recommended_price:.2f}")
 
